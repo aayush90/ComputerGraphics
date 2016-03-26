@@ -1,0 +1,28 @@
+No	PARAMETER		  RANGE								COMMAND USED
+
+
+1. Colour of the light (RGBA)   0.0 to hme         					  light_diffuse[] = {0.5, 1.0, 1.0, 1.0}
+		
+2. Shininess of the surface	0.0 to hme	    					  mat_shininess[] = { 50.0 };
+
+3. Specular illumination	no khaas difference  					  mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
+4. Position of light(xyzw)	w=0/1(directional/positional)			          light_position[] = { 10.0, 0.0, 10.0, 1.0 };(These demonstrate positional)
+				x/y/z-> 0 to 10
+5. Colour of background		Any value!!						  glClearColor (0.5, 0.5, 0.5, 0.0);
+
+6. Camera Perspective           view field-Relative to eye position			  gluPerspective( /* field of view in degree */ 50.0,/* aspect ratio */ 1.0,/* Z near */ 1.0, /* Z far */ 10.0);
+				aspect ratio-anything (1 for our project)
+				z far/z near-always positive
+
+7. Eye coordinates		0-7 gives decent results(after that distortion            gluLookAt(0.0, 0.0, 5.0,  /* eye is at (0,0,5) */0.0, 0.0, 0.0,/* center is at (0,0,0) */0.0, 1.0, 0.);/* up is in positive Y direction */
+ 				is observed!do not go beyond 9)
+				centre-(0,0,0) gives the best result for viewport
+				up-choose (1,0,0)/(0,1,0)/(1,1,0)
+
+8. Rotation and translation     R-(angle,x,y,z)						  glRotatef(60, 1.0, 0.0, 0.0); glRotatef(-40, 0.0, 0.0, 1.0);glTranslatef(0.0, 0.0, -1.0);
+				T-(x,y,z)
+	
+9. Window size			(width,height)						  glutInitWindowSize (500, 500); 
+
+10. Window Position             Bogus!!							  glutInitWindowPosition (100, 100);
