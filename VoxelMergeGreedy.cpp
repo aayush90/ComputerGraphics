@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <time.h> 
 #include <sstream>
+#include "CUBE.h"
+
 
 using namespace std;
 
@@ -64,6 +66,9 @@ namespace std {
 unordered_map<Point3D,int> voxels;
 int cubes=0;
 map<int,pair<Point3D,Point3D> > cuboids;
+GLfloat **n;
+GLint **faces;
+GLfloat **v;
 
 
 void findLocalMaxCuboid(Point3D p){
@@ -275,6 +280,77 @@ void createOBJ(){
 }
 
 
+pair<double,pair<double,double> > CalculateNormal(GLfloat v1[3], GLfloat v2[3], GLfloat v3[3]){
+
+	double x = (v2[1]-v3[1])*(v1[2]-v2[2]) - (v2[2]-v3[2])*(v1[1]-v2[1]) ;
+	double y = (v2[2]-v3[2])*(v1[0]-v2[0]) - (v2[0]-v3[0])*(v1[2]-v2[2]) ;
+	double z = (v2[0]-v3[0])*(v1[1]-v2[1]) - (v2[1]-v3[1])*(v1[0]-v2[0]) ;
+
+	return make_pair(x,make_pair(y,z));
+
+}
+
+
+void initializeArray(){
+
+	n = new GLfloat*[6*cubes];
+	faces = new GLint*[6*cubes];
+	v = new GLfloat*[8*cubes];
+
+	int i;
+
+	for (i = 0;i < 6*cubes;++i){
+		n[i] = new GLfloat[3];
+		faces[i] = new GLint[4];
+	}
+	for (i = 0; i < 8*cubes; ++i){
+		v[i] = new GLfloat[3];
+	}
+
+  	
+  	i=0;
+	for(map<int,pair<Point3D,Point3D> >::iterator it=cuboids.begin();it!=cuboids.end();it++){
+		double x = ((*it).second.first.x + (*it).second.second.x)/4.0 ; 
+		double y = ((*it).second.first.y + (*it).second.second.y)/4.0 ; 
+		double z = ((*it).second.first.z + (*it).second.second.z)/4.0 ; 
+
+		double width = ((*it).second.second.x - (*it).second.first.x + 2)/2.0 ; 
+		double height = ((*it).second.second.y - (*it).second.first.y + 2)/2.0 ; 
+		double depth = ((*it).second.second.z - (*it).second.first.z + 2)/2.0 ; 
+
+
+	  	v[i][0] = x-width/2 ; v[i][1] = y-height/2 ; v[i][2] = z-depth/2 ;  
+	  	v[i+1][0] = x+width/2 ; v[i+1][1] = y-height/2 ; v[i+1][2] = z-depth/2 ;  
+	  	v[i+2][0] = x+width/2 ; v[i+2][1] = y+height/2 ; v[i+2][2] = z-depth/2 ;  
+	  	v[i+3][0] = x-width/2 ; v[i+3][1] = y+height/2 ; v[i+3][2] = z-depth/2 ;  
+	  	v[i+4][0] = x+width/2 ; v[i+4][1] = y+height/2 ; v[i+4][2] = z+depth/2 ;  
+	  	v[i+5][0] = x+width/2 ; v[i+5][1] = y-height/2 ; v[i+5][2] = z+depth/2 ;  
+	  	v[i+6][0] = x-width/2 ; v[i+6][1] = y-height/2 ; v[i+6][2] = z+depth/2 ;  
+	  	v[i+7][0] = x-width/2 ; v[i+7][1] = y+height/2 ; v[i+7][2] = z+depth/2 ;  
+
+	  	i+=8;
+
+	}
+	for(i=0;i<6*cubes;i+=6){
+		faces[i][0] = 8*i/6 ; faces[i][1] = 8*i/6+1 ; faces[i][2] = 8*i/6+2 ; faces[i][3] = 8*i/6+3 ;
+		faces[i+1][0] = 8*i/6+1 ; faces[i+1][1] = 8*i/6+5 ; faces[i+1][2] = 8*i/6+4 ; faces[i+1][3] = 8*i/6+2 ;
+		faces[i+2][0] = 8*i/6+4 ; faces[i+2][1] = 8*i/6+5 ; faces[i+2][2] = 8*i/6+6 ; faces[i+2][3] = 8*i/6+7 ;
+		faces[i+3][0] = 8*i/6 ; faces[i+3][1] = 8*i/6+3 ; faces[i+3][2] = 8*i/6+7 ; faces[i+3][3] = 8*i/6+6 ;
+		faces[i+4][0] = 8*i/6+2 ; faces[i+4][1] = 8*i/6+4 ; faces[i+4][2] = 8*i/6+7 ; faces[i+4][3] = 8*i/6+3 ;
+		faces[i+5][0] = 8*i/6 ; faces[i+5][1] = 8*i/6+6 ; faces[i+5][2] = 8*i/6+5 ; faces[i+5][3] = 8*i/6+1 ;
+	}
+
+	for(i=0;i<6*cubes;i++){
+		pair<double,pair<double,double> > p = CalculateNormal(v[faces[i][0]],v[faces[i][1]],v[faces[i][2]]);	
+		n[i][0] = p.first ; n[i][1] = p.second.first ; n[i][2] = p.second.second ;	
+	}
+
+}
+
+
+
+
+
 
 int main(int argc, char** argv){
 	srand (time(NULL));
@@ -305,6 +381,10 @@ int main(int argc, char** argv){
 	findCuboidDimension();
 
 	createOBJ();
+
+	initializeArray();
+
+	project(1,NULL,v,n,faces,cubes);
 	cout<<cubes<<endl;
 
 	return 0;
